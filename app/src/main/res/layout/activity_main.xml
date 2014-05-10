@@ -1,0 +1,91 @@
+
+
+ <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.example.projectv1.MainActivity$PlaceholderFragment" >
+
+   
+
+ <ImageView
+        android:id="@+id/imageIOT"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="0dp"
+        android:contentDescription="@string/strimage"
+        android:src="@drawable/iot" />
+    
+    
+ <TextView
+        android:id="@+id/textViewStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imageIOT"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:text="@string/strstatus" />
+ 
+  
+        <Button
+        android:id="@+id/PairedDevicesbtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/textViewStatus"
+        android:layout_below="@+id/textViewStatus"
+        android:layout_marginTop="20dp"
+        android:layout_centerHorizontal="true"
+        android:text="Paired Devices" />
+
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/PairedDevicesbtn"
+        android:layout_marginTop="25dp"
+        android:layout_toLeftOf="@+id/textViewStatus"
+        android:text="@string/strconnectedto" />
+
+    <TextView
+        android:id="@+id/editTextConnectedTo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textView"
+        android:layout_alignBottom="@+id/textView"
+        android:layout_toRightOf="@+id/imageIOT"
+        android:ems="10" />
+
+    
+    
+    
+    <Button
+        android:id="@+id/RunInBackground"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/editTextConnectedTo"
+        android:layout_centerHorizontal="false"
+        
+        android:layout_marginTop="36dp"
+        android:text="@string/strRunBackground" />
+    
+    <Button
+        android:id="@+id/Kill"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/editTextConnectedTo"
+        android:layout_marginTop="36dp"
+        android:layout_toRightOf="@+id/RunInBackground"
+        android:text="@string/strkill" />
+
+    
+    
+    </RelativeLayout>
+    
