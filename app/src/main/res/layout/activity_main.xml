@@ -85,7 +85,15 @@
         android:layout_toRightOf="@+id/RunInBackground"
         android:text="@string/strkill" />
 
-    
-    
-    </RelativeLayout>
+     <Button
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:text="Send File"
+         android:id="@+id/btnSend"
+         android:layout_below="@+id/PairedDevicesbtn"
+         android:layout_marginTop="12dp"
+         android:layout_centerHorizontal="true" />
+
+
+ </RelativeLayout>
     

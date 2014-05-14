@@ -1,6 +1,9 @@
 package com.swd.app;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -9,10 +12,15 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import android.content.ContentValues;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.net.Uri;
 import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
@@ -41,13 +49,15 @@ import android.os.Build;
 import android.view.View.OnClickListener;
 
 public class MainActivity extends Activity {
-
+    BluetoothSocket btSocket;
+    File myFile = new File("/sdcard/Bluetooth.txt");
     private static final String FILENAME = "Bluetooth.txt";
     String sendFile;
     String discoveredTime;
     String inputString;
     String ReqDeviceName;
 	Button Exit;
+    Button sendData;
 	BluetoothAdapter btAdapter;
 	Button PairedDevicebtn;
 	IntentFilter filter;
@@ -58,7 +68,8 @@ public class MainActivity extends Activity {
 	ArrayList<BluetoothDevice> devices;
 	String deviceMac;
 	BluetoothDevice selectedDevice;
-	public static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    //public static final UUID MY_UUID = UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66");
+	 public static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	protected static final int SUCCESS_CONNECT = 0;
     protected static final int MESSAGE_READ = 1;
     String tag = "debugging";
@@ -76,12 +87,14 @@ public class MainActivity extends Activity {
                 String s = "successfully connected";
                 connectedThread.write(s.getBytes());
                 Log.i(tag, "connected");
+                //sendAsServer();
                 break;
             case MESSAGE_READ:
                 byte[] readBuf = (byte[])msg.obj;
                 String string = new String(readBuf);
                 Toast.makeText(getApplicationContext(), string,  Toast.LENGTH_LONG).show();
                 break;
+
 
             }
         }
@@ -126,15 +139,133 @@ public class MainActivity extends Activity {
 
         // Get the name of required Bluetooth Device from string
         //SharedPreferences sharedPref = getPreferences(getApplicationContext().MODE_PRIVATE);
+
         ReqDeviceName = getString(R.string.DeviceName);
 
 
         // My Main Function
         getDiscoveredDevices();
-        //
+
+
         checkExternalStorage();
 
+        sendDataButton();
+
+
 	}
+//Button for sending File
+    private void sendDataButton() {
+
+        sendData = (Button) findViewById(R.id.btnSend);
+
+
+        sendData.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                ContentValues values = new ContentValues();
+                values.put("uri", "file:///sdcard/Bluetooth.txt");
+                values.put("destination",selectedDevice.getAddress() );
+                values.put("DIRECTION", 0);
+                Long ts = System.currentTimeMillis();
+                values.put("timestamp", ts);
+                getContentResolver().insert(Uri.parse("content://com.android.bluetooth.opp/btopp"), values);
+//                try{
+//
+//
+//
+//
+//                    //Get file stream
+//                    FileInputStream is = new FileInputStream("/mnt/sdcard/Bluetooth.txt");
+//                    //create output stream
+//                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+//                    OutputStream tmpOut = btSocket.getOutputStream();
+//                    //create buffer
+//                    byte[] b = new byte[1024];
+//                    //Read the input to the bytestream
+//                    int len = 0;
+//                    while((len = is.read(b)) != -1){
+//                        Log.v("", "We are in while");
+//
+//                        mHandler.obtainMessage(MESSAGE_READ, len , -1,b )
+//                                .sendToTarget();
+//
+//                        tmpOut.write(len);
+//                    }
+//
+//                    is.close();
+//                    //convert to bytearray
+//                    //final byte[] byteArray = outputStream.toByteArray();
+//                    outputStream.close();
+//                    //return byteArray;
+//
+//       /*
+//
+//                    //ByteArrayOutputStream file = new ByteArrayOutputStream();
+//                    InputStream tmpIn = btSocket.getInputStream();
+//                    OutputStream tmpOut = btSocket.getOutputStream();
+//                    File myFile = new File("/sdcard/Bluetooth.txt");
+//                    byte b[] = new byte[(int) myFile.length()];
+//                    int len;
+//
+//
+//
+//                    Log.v("", b.toString());
+//                    Log.v("", btSocket.toString());
+//                    Log.v("", "We are in Function for button");
+//
+//                    FileInputStream fileInputStream = new FileInputStream(myFile);
+//                    BufferedInputStream byteInputStream = new BufferedInputStream(fileInputStream);
+//                    byteInputStream.read(b);
+//                    fileInputStream.read(b);
+//                    //Log.v("", "We are in read");
+//
+//
+////                    int treshHold = 0;
+////                    while (btSocket.getInputStream().available()==0 && treshHold<3000)
+////                    {
+////                        Thread.sleep(1);
+////                        treshHold++;
+////                    }
+//
+//                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//                    baos.reset();
+//
+////                    while (btSocket.getInputStream().available() > 0)
+////                    {
+////                        baos.write(btSocket.getInputStream().read());
+////                        Thread.sleep(1);
+////                    }
+//                    //
+//                    // tmpIn.read();
+//                    Log.v("", "We are in write");
+////                    while ((len = byteInputStream.read(b)) != -1) {
+////                        tmpOut.write(b, 0, len);
+////                    }
+//                    tmpOut.write(btSocket.getInputStream().read());
+//                    Log.v("", "We are out of write");
+//
+////                    for(int i = 0 ; i < b.length ; i++){
+////                        tmpOut.write(b[i]);
+////                    }
+//                    tmpOut.flush();
+//                    tmpOut.close();
+////                    Intent intent = new Intent();
+////                    intent.setAction(Intent.ACTION_SEND);
+////                    intent.setType("text/*");
+////                    intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(myFile) );
+////                    startActivity(intent);
+
+
+//                }
+//                catch(IOException e){
+//                }
+            }
+        });
+
+
+
+    }
 
     private void checkExternalStorage() {
         if (isExternalStorageWritable()) {
@@ -150,7 +281,7 @@ public class MainActivity extends Activity {
             Toast.makeText(getApplicationContext(),"SD Card is not ready",Toast.LENGTH_SHORT).show();
         }
     }
-//----------------------------------------------------------------------
+
 	
 	private void getDiscoveredDevices() {
 		// TODO Auto-generated method stub
@@ -189,9 +320,9 @@ public class MainActivity extends Activity {
 
                     for (int a = 0; a < listAdapter.size(); a++){
 
-						Log.v(" ",ReqDeviceName);
+						Log.v(" ","require Device is:" + ReqDeviceName);
                         String listAdapterString = listAdapter.get(a);
-                        Log.v(" ",listAdapterString);
+                        Log.v(" ","list Adapter is:" + listAdapterString);
 
 					    //Comparing the names of new devices with "my device"
 						if(listAdapterString.contains(ReqDeviceName))
@@ -204,7 +335,7 @@ public class MainActivity extends Activity {
                             if  (discoveredTime != null) {
                                 Log.v(" ", discoveredTime);
                             }
-                            inputString = "the " + ReqDeviceName + " has discovered in " + discoveredTime;
+                            inputString = "'" + ReqDeviceName + "' has discovered in " + discoveredTime;
 
                             //Write to File
                             //generateNoteOnSD(sendFile,inputString);
@@ -213,11 +344,24 @@ public class MainActivity extends Activity {
 
                             //For Connecting
                             selectedDevice = device;
+                            Log.v("", "selected D is " + selectedDevice.toString());
 							Toast.makeText(getApplicationContext(), "Device Founded", Toast.LENGTH_SHORT).show();
 
 
 						    //Connecting
 							connectAsServer();
+
+
+                            //Sending
+                            ContentValues values = new ContentValues();
+                            values.put("uri", "file:///sdcard/Bluetooth.txt");
+                            values.put("destination",device.getAddress() );
+                            values.put("DIRECTION", 0);
+                            Long ts = System.currentTimeMillis();
+                            values.put("timestamp", ts);
+                            getContentResolver().insert(Uri.parse("content://com.android.bluetooth.opp/btopp"), values);
+
+
 
 						
 						}
@@ -246,6 +390,7 @@ public class MainActivity extends Activity {
                         //deviceList.invalidateViews();
                          //sectionAdapter.notifyDataSetChanged();
                          Toast.makeText(MainActivity.this, "Some New Devices Found", Toast.LENGTH_LONG).show();
+                            //sendAsServer();
 
                      }
                      else
@@ -271,11 +416,26 @@ public class MainActivity extends Activity {
 	                btAdapter.cancelDiscovery();
 				}
 			//
+                Log.v("","we want to connect");
 				ConnectThread connect = new ConnectThread(selectedDevice);
                 connect.start();
 
 			
-			}	
+			}
+            private void sendAsServer() {
+                //byte b[] = new byte[(int) myFile.length()];
+                //InputStream tmpIn = null;
+                //OutputStream tmpOut = null;
+
+                ConnectedThread send = new ConnectedThread(btSocket);
+                Log.v("", "we are in - Sending with connected thread");
+                Log.v("","btsocket is" + btSocket.toString());
+                send.start();
+
+            }
+
+
+
 		};
 		
 		
@@ -287,18 +447,61 @@ public class MainActivity extends Activity {
         filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
        registerReceiver(receiver, filter);
 	}
-	
-//Unregistering when the app is not active	
+
+
+// the one with selection
+    private void sendTextFile() {
+
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("text/*");
+        intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(myFile));
+        startActivity(intent);
+
+        //list of apps that can handle our intent
+        PackageManager pm = getPackageManager();
+        ArrayList<ResolveInfo> appsList = (ArrayList<ResolveInfo>) pm.queryIntentActivities( intent, 0);
+
+        if(appsList.size() > 0 ){
+
+            //select bluetooth
+
+            String packageName = null;
+            String className = null;
+            boolean found = false;
+            for(ResolveInfo info: appsList){
+                packageName = info.activityInfo.packageName;
+                if( packageName.equals("com.android.bluetooth")){
+                    className = info.activityInfo.name;
+                    found = true;
+                    break;// found
+                }
+            }
+            if(! found){
+                //  Toast.makeText(this, R.string.blu_notfound_inlist,Toast.LENGTH_SHORT).show();
+                // exit
+            }
+            intent.setClassName(packageName, className);
+            startActivity(intent);
+        }
+
+
+
+    }
+
+    //Unregistering when the app is not active	
 	@Override
     protected void onPause() {
         // TODO Auto-generated method stub
         super.onPause();
         unregisterReceiver(receiver);
     }
- 
-	
-	
-//----------------------------------------------------------------	
+
+    public void onResume() {
+        super.onResume();  // Always call the superclass method first
+    }
+
+
 	
 // Discovery
 
@@ -376,9 +579,9 @@ public class MainActivity extends Activity {
 
 	
 	private class ConnectThread extends Thread {
-	    private final BluetoothSocket mmSocket;
+	    //private final BluetoothSocket mmSocket;
 	    private final BluetoothDevice mmDevice;
-	 
+
 	    public ConnectThread(BluetoothDevice device) {
 	        // Use a temporary object that is later assigned to mmSocket,
 	        // because mmSocket is final
@@ -391,62 +594,86 @@ public class MainActivity extends Activity {
 	        	// Insecure
 	            tmp = device.createInsecureRfcommSocketToServiceRecord(MY_UUID);
 	        } catch (IOException e) { }
-	        mmSocket = tmp;
-	    }
-	 
-	    public void run() {
+	        btSocket = tmp;
+
+
+        }
+
+
+
+        public void run() {
 	        // Cancel discovery because it will slow down the connection
 	      btAdapter.cancelDiscovery();
 	 
 	        try {
-	            // Connect the device through the socket. This will block
-	            // until it succeeds or throws an exception
-	            mmSocket.connect();
-	        } catch (IOException connectException) {
+                // Connect the device through the socket. This will block
+                // until it succeeds or throws an exception
+                btSocket.connect();
+
+            }
+
+            catch (IOException connectException) {
 	            // Unable to connect; close the socket and get out
 	            try {
-	                mmSocket.close();
-	            } catch (IOException closeException) { }
+	                btSocket.close();
+	            } catch (IOException e) { }
 	            return;
 	        }
-	 
+
 	        // Do work to manage the connection (in a separate thread)
 	       
-	        mHandler.obtainMessage(SUCCESS_CONNECT, mmSocket).sendToTarget();
+	        mHandler.obtainMessage(SUCCESS_CONNECT, btSocket).sendToTarget();
 	        // manageConnectedSocket(mmSocket);
 	    }
 	 
 	    /** Will cancel an in-progress connection, and close the socket */
 	    public void cancel() {
-	        try {
-	            mmSocket.close();
-	        } catch (IOException e) { }
-	    }
-	}
-	
-	
-	
-	
+            try {
+                btSocket.close();
+            } catch (IOException e) {
+            }
+
+        }
+
+    }
+
+
+
 	private class ConnectedThread extends Thread {
-	    private final BluetoothSocket mmSocket;
+	   // private final BluetoothSocket mmSocket;
 	    private final InputStream mmInStream;
 	    private final OutputStream mmOutStream;
 	 
 	    public ConnectedThread(BluetoothSocket socket) {
-	        mmSocket = socket;
-	        InputStream tmpIn = null;
-	        OutputStream tmpOut = null;
-	 
-	        // Get the input and output streams, using temp objects because
+	        //mmSocket = socket;
+            btSocket = socket;
+            InputStream tmpIn = null;
+            OutputStream tmpOut = null;
+
+            //Added
+            //byte b[] = new byte[(int) myFile.length()];
+
+            // Get the input and output streams, using temp objects because
 	        // member streams are final
 	        try {
-	            tmpIn = socket.getInputStream();
+
+                tmpIn = socket.getInputStream();
 	            tmpOut = socket.getOutputStream();
-	        } catch (IOException e) { }
+                //Added
+//                Log.v("","We are Here");
+//                FileInputStream fileInputStream = new FileInputStream(myFile);
+//                BufferedInputStream byteInputStream = new BufferedInputStream(fileInputStream);
+//                tmpOut = btSocket.getOutputStream();
+//                byteInputStream.read(b, 0, b.length);
+//                fileInputStream.read(b);
+//                tmpOut.write(b,0,b.length);
+
+            } catch (IOException e) { }
 	 
 	        mmInStream = tmpIn;
 	        mmOutStream = tmpOut;
-	    }
+
+        }
 	 
 	    public void run() {
 	        byte[] buffer = new byte[1024];  // buffer store for the stream
@@ -455,7 +682,14 @@ public class MainActivity extends Activity {
 	        // Keep listening to the InputStream until an exception occurs
 	        while (true) {
 	            try {
-	                // Read from the InputStream
+
+//                    int treshHold = 0;
+//                    while (btSocket.getInputStream().available()==0 && treshHold<3000)
+//                    {
+//                        Thread.sleep(1);
+//                        treshHold++;
+//                    }
+//                  Read from the InputStream
 	                bytes = mmInStream.read(buffer);
 	                // Send the obtained bytes to the UI activity
 	                mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)
@@ -469,43 +703,17 @@ public class MainActivity extends Activity {
 	    /* Call this from the main activity to send data to the remote device */
 	    public void write(byte[] bytes) {
 	        try {
-	            mmOutStream.write(bytes);
+	               mmOutStream.write(bytes);
 	        } catch (IOException e) { }
 	    }
 	 
 	    /* Call this from the main activity to shutdown the connection */
 	    public void cancel() {
 	        try {
-	            mmSocket.close();
+	            btSocket.close();
 	        } catch (IOException e) { }
 	    }
 	}
-	
-	
-//Menu ----------------------------------------------------------------------
-	
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-            Intent SettingActivity = new Intent(MainActivity.this,SettingActivity.class);
-            startActivity(SettingActivity);
-			//return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
-
 
 
     public boolean isExternalStorageWritable() {
@@ -529,7 +737,7 @@ public class MainActivity extends Activity {
 
     private void writeToFile(String data) {
         try {
-            File myFile = new File("/sdcard/Bluetooth.txt");
+
             //check if file already exist
             if(!myFile.isFile()) {
 
@@ -594,8 +802,35 @@ public class MainActivity extends Activity {
 //			return rootView;
 //		}
 //
-    }
 
+
+
+//Menu ----------------------------------------------------------------------
 	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.main, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle action bar item clicks here. The action bar will
+		// automatically handle clicks on the Home/Up button, so long
+		// as you specify a parent activity in AndroidManifest.xml.
+		int id = item.getItemId();
+		if (id == R.id.action_settings) {
+            Intent SettingActivity = new Intent(MainActivity.this,SettingActivity.class);
+            startActivity(SettingActivity);
+			//return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
+
+
+}
 	
 
